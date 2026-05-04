@@ -22,7 +22,7 @@ export default function AdminNav() {
         <p className="caption text-white/40 mt-0.5">Skills Intelligence Hub</p>
       </div>
 
-      <nav className="flex-1 p-4 flex flex-col gap-1">
+      <nav className="flex-1 p-4 pb-16 flex flex-col gap-1">
         {navItems.map((item) => {
           const active = pathname.startsWith(item.href);
           return (
@@ -41,18 +41,19 @@ export default function AdminNav() {
             </Link>
           );
         })}
-      </nav>
 
-      <div className="p-4 border-t border-white/10">
-        <form action="/api/auth/logout" method="POST">
-          <button
-            type="submit"
-            className="w-full text-left text-sm text-white/50 hover:text-white transition-colors font-caption px-3 py-2"
-          >
-            Sign out
-          </button>
-        </form>
-      </div>
+        <div className="mt-auto pt-4 border-t border-white/10">
+          <form action="/api/auth/logout" method="POST">
+            <button
+              type="submit"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded text-sm font-heading font-medium text-white/50 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+            >
+              <span aria-hidden>↩</span>
+              Sign out
+            </button>
+          </form>
+        </div>
+      </nav>
     </aside>
   );
 }
