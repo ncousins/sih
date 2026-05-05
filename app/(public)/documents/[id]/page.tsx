@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import DownloadForm from "@/components/ui/DownloadForm";
@@ -38,6 +39,22 @@ export default async function DocumentDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Main content */}
         <div className="lg:col-span-2 flex flex-col gap-6">
+          {/* Cover image */}
+          {document.cover_image_path && (
+            <div
+              className="relative w-full max-w-xs rounded-lg overflow-hidden border border-border shadow-sm"
+              style={{ aspectRatio: "210 / 297" }}
+            >
+              <Image
+                src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/covers/${document.cover_image_path}`}
+                alt={document.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          )}
+
           {/* Category */}
           {document.category && (
             <span className="text-xs font-caption uppercase tracking-wide text-slate bg-surface px-2 py-0.5 rounded self-start">

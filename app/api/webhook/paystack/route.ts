@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       .from("documents")
       .createSignedUrl(doc.file_path, 60 * 60 * 24);
 
-    if (signed) {
+    if (signed?.signedUrl) {
       await sendDownloadEmail({
         to: email,
         name,

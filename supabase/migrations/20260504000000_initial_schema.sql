@@ -1,19 +1,16 @@
--- Enable UUID extension
-create extension if not exists "uuid-ossp";
-
 -- ============================================================
 -- TABLES
 -- ============================================================
 
 create table public.users (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   email text not null unique,
   created_at timestamptz not null default now()
 );
 
 create table public.members (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   email text not null unique,
   organisation text,
   tier text not null default 'standard',
@@ -21,7 +18,7 @@ create table public.members (
 );
 
 create table public.documents (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   title text not null,
   description text,
   category text,
@@ -33,7 +30,7 @@ create table public.documents (
 );
 
 create table public.downloads (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   document_id uuid not null references public.documents(id) on delete cascade,
   payment_status text not null default 'free',
@@ -41,7 +38,7 @@ create table public.downloads (
 );
 
 create table public.transactions (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   document_id uuid not null references public.documents(id) on delete cascade,
   amount numeric(10,2) not null,
@@ -52,7 +49,7 @@ create table public.transactions (
 );
 
 create table public.events (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   title text not null,
   description text,
   date timestamptz not null,

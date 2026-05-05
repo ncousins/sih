@@ -25,12 +25,13 @@ export default function DownloadForm({ documentId, isPaid, price }: DownloadForm
     const form = e.currentTarget;
     const name = (form.elements.namedItem("name") as HTMLInputElement).value;
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const organisation = (form.elements.namedItem("organisation") as HTMLInputElement).value;
 
     try {
       const res = await fetch("/api/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, documentId }),
+        body: JSON.stringify({ name, email, organisation, documentId }),
       });
 
       const data = await res.json();
@@ -40,7 +41,7 @@ export default function DownloadForm({ documentId, isPaid, price }: DownloadForm
         const initRes = await fetch("/api/paystack/initialize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, documentId }),
+          body: JSON.stringify({ name, email, organisation, documentId }),
         });
 
         const initData = await initRes.json();
@@ -99,6 +100,14 @@ export default function DownloadForm({ documentId, isPaid, price }: DownloadForm
         placeholder="jane@company.co.za"
         required
         autoComplete="email"
+      />
+      <Input
+        id="organisation"
+        name="organisation"
+        label="Organisation"
+        placeholder="Acme Corp"
+        required
+        autoComplete="organization"
       />
 
       {isPaid && price != null && (

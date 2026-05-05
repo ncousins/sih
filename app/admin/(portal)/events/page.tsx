@@ -8,7 +8,7 @@ async function createEvent(formData: FormData) {
   "use server";
   const supabase = createAdminClient();
   await supabase.from("events").insert({
-    title: (formData.get("title") as string).trim(),
+    title: ((formData.get("title") as string) ?? "").trim(),
     description: (formData.get("description") as string)?.trim() || null,
     date: formData.get("date") as string,
     location: (formData.get("location") as string)?.trim() || null,

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import type { Document } from "@/lib/types";
 
 const CATEGORIES = [
   "Research Report",
@@ -14,69 +16,64 @@ const CATEGORIES = [
   "Other",
 ];
 
-export default function DocumentUploadForm() {
-  const [uploading, setUploading] = useState(false);
+interface Props {
+  document: Document;
+  pdfSignedUrl: string;
+  coverPublicUrl: string | null;
+}
+
+export default function DocumentEditForm({ document: doc, pdfSignedUrl, coverPublicUrl }: Props) {
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [isPaid, setIsPaid] = useState(false);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const [isPaid, setIsPaid] = useState(doc.is_paid);
+  const [coverPreview, setCoverPreview] = useState<string | null>(coverPublicUrl);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setUploading(true);
+    setSaving(true);
     setError("");
-    setSuccess(false);
 
     const form = e.currentTarget;
-    const fileInput = form.elements.namedItem("file") as HTMLInputElement;
-    const file = fileInput.files?.[0];
+    const newFile = (form.elements.namedItem("file") as HTMLInputElement).files?.[0];
 
-    if (!file) {
-      setError("Please select a PDF file.");
-      setUploading(false);
-      return;
-    }
-
-    if (file.type !== "application/pdf") {
+    if (newFile && newFile.type !== "application/pdf") {
       setError("Only PDF files are supported.");
-      setUploading(false);
+      setSaving(false);
       return;
     }
 
     try {
       const fd = new FormData(form);
 
-      const res = await fetch("/api/admin/documents", {
-        method: "POST",
+      const res = await fetch(`/api/admin/documents/${doc.id}`, {
+        method: "PATCH",
         body: fd,
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to save document");
+      if (!res.ok) throw new Error(data.error ?? "Failed to save changes");
 
-      setSuccess(true);
-      formRef.current?.reset();
-      setIsPaid(false);
-      setCoverPreview(null);
-
-      // Refresh the page to show the new document
-      window.location.reload();
+      router.push("/admin/documents");
+      router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
+      setError(err instanceof Error ? err.message : "Save failed");
+      setSaving(false);
     }
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {/* Hidden fields for current file paths so the API can clean up old files */}
+      <input type="hidden" name="current_file_path" value={doc.file_path} />
+      <input type="hidden" name="current_cover_path" value={doc.cover_image_path ?? ""} />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           id="title"
           name="title"
           label="Title"
-          placeholder="2024 GBS Skills Survey"
+          defaultValue={doc.title}
           required
         />
         <div className="flex flex-col gap-1">
@@ -86,6 +83,7 @@ export default function DocumentUploadForm() {
           <select
             id="category"
             name="category"
+            defaultValue={doc.category ?? ""}
             className="rounded border border-border bg-white px-3 py-2.5 text-sm text-slate outline-none focus:border-navy focus:ring-2 focus:ring-navy/20 transition"
           >
             {CATEGORIES.map((c) => (
@@ -103,6 +101,7 @@ export default function DocumentUploadForm() {
           id="description"
           name="description"
           rows={3}
+          defaultValue={doc.description ?? ""}
           placeholder="Brief description of this document…"
           className="rounded border border-border bg-white px-3 py-2.5 text-sm text-slate placeholder:text-slate/50 outline-none focus:border-navy focus:ring-2 focus:ring-navy/20 transition resize-none"
         />
@@ -129,25 +128,25 @@ export default function DocumentUploadForm() {
             type="number"
             min="0"
             step="0.01"
+            defaultValue={doc.price ?? ""}
             placeholder="Price (ZAR)"
             className="w-36"
           />
         )}
       </div>
 
-      {/* Cover image — A4 portrait ratio (210:297) */}
+      {/* Cover image */}
       <div className="flex flex-col gap-2">
         <label htmlFor="cover_image" className="text-sm font-semibold text-navy font-heading">
-          Cover image <span className="font-normal text-slate/60">(optional)</span>
+          Cover image <span className="font-normal text-slate/60">(leave blank to keep current)</span>
         </label>
         <div className="flex gap-4 items-start">
-          {/* A4 preview */}
           <div
             className="relative shrink-0 rounded border border-border overflow-hidden bg-surface"
             style={{ width: 80, aspectRatio: "210 / 297" }}
           >
             {coverPreview ? (
-              <Image src={coverPreview} alt="Cover preview" fill className="object-cover" />
+              <Image src={coverPreview} alt="Cover preview" fill className="object-cover" unoptimized />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <svg className="w-6 h-6 text-navy/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -166,27 +165,46 @@ export default function DocumentUploadForm() {
                 const f = e.target.files?.[0];
                 setCoverPreview((prev) => {
                   if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-                  return f ? URL.createObjectURL(f) : null;
+                  return f ? URL.createObjectURL(f) : coverPublicUrl;
                 });
               }}
               className="text-sm text-slate file:mr-3 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-sm file:font-heading file:font-semibold file:bg-navy file:text-white hover:file:bg-navy/90 file:cursor-pointer transition"
             />
-            <p className="text-xs text-slate/50">JPEG, PNG or WebP. Will display at A4 portrait ratio.</p>
+            <p className="text-xs text-slate/50">JPEG, PNG or WebP. Displays at A4 portrait ratio.</p>
           </div>
         </div>
       </div>
 
-      {/* File upload */}
-      <div className="flex flex-col gap-1">
+      {/* PDF replacement */}
+      <div className="flex flex-col gap-1.5">
         <label htmlFor="file" className="text-sm font-semibold text-navy font-heading">
           PDF file
+        </label>
+        {/* Current file indicator */}
+        <div className="flex items-center gap-2 bg-surface border border-border rounded px-3 py-2">
+          <svg className="w-4 h-4 text-slate/50 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+          <span className="text-xs text-slate truncate flex-1">
+            {doc.file_path.replace(/^\d+-/, "")}
+          </span>
+          <a
+            href={pdfSignedUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-navy font-heading font-semibold hover:text-orange transition-colors shrink-0"
+          >
+            Open →
+          </a>
+        </div>
+        <label className="text-xs text-slate/60 font-heading font-medium mt-0.5">
+          Replace with a new file (optional)
         </label>
         <input
           id="file"
           name="file"
           type="file"
           accept="application/pdf"
-          required
           className="text-sm text-slate file:mr-3 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-sm file:font-heading file:font-semibold file:bg-navy file:text-white hover:file:bg-navy/90 file:cursor-pointer transition"
         />
       </div>
@@ -196,15 +214,17 @@ export default function DocumentUploadForm() {
           {error}
         </p>
       )}
-      {success && (
-        <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
-          Document uploaded successfully.
-        </p>
-      )}
 
-      <div>
-        <Button type="submit" variant="secondary" loading={uploading}>
-          Upload document
+      <div className="flex gap-3">
+        <Button type="submit" variant="secondary" loading={saving}>
+          Save changes
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => router.push("/admin/documents")}
+        >
+          Cancel
         </Button>
       </div>
     </form>

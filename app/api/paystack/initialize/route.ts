@@ -5,9 +5,9 @@ import { randomUUID } from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, documentId } = await request.json();
+    const { name, email, organisation, documentId } = await request.json();
 
-    if (!name || !email || !documentId) {
+    if (!name || !email || !organisation || !documentId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     await supabase
       .from("users")
       .upsert(
-        { name: name.trim(), email: email.toLowerCase().trim() },
+        { name: name.trim(), email: email.toLowerCase().trim(), organisation: organisation.trim() },
         { onConflict: "email", ignoreDuplicates: false }
       );
 

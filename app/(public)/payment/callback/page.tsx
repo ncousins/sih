@@ -78,7 +78,7 @@ export default async function PaymentCallbackPage({
           .from("documents")
           .createSignedUrl(doc.file_path, 60 * 60 * 24);
 
-        if (signed) {
+        if (signed?.signedUrl) {
           const name = tx.metadata?.name ?? email;
           await sendDownloadEmail({
             to: email,

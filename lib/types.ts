@@ -4,6 +4,7 @@ export interface Document {
   description: string | null;
   category: string | null;
   file_path: string;
+  cover_image_path: string | null;
   is_paid: boolean;
   price: number | null;
   is_published: boolean;

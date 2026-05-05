@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { Document } from "@/lib/types";
@@ -21,8 +22,10 @@ async function deleteDocument(formData: FormData) {
   "use server";
   const id = formData.get("id") as string;
   const filePath = formData.get("file_path") as string;
+  const coverPath = formData.get("cover_image_path") as string;
   const supabase = createAdminClient();
   await supabase.storage.from("documents").remove([filePath]);
+  if (coverPath) await supabase.storage.from("covers").remove([coverPath]);
   await supabase.from("documents").delete().eq("id", id);
   revalidatePath("/admin/documents");
 }
@@ -68,7 +71,7 @@ export default async function AdminDocumentsPage() {
                         : "bg-mint/10 text-teal",
                     ].join(" ")}
                   >
-                    {doc.is_paid ? `R${doc.price}` : "Free"}
+                    {doc.is_paid ? `R${Number(doc.price ?? 0).toFixed(0)}` : "Free"}
                   </span>
                   <span
                     className={[
@@ -87,6 +90,12 @@ export default async function AdminDocumentsPage() {
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  href={`/admin/documents/${doc.id}`}
+                  className="text-xs font-heading font-semibold px-3 py-1.5 rounded border border-navy text-navy hover:bg-navy hover:text-white transition-colors"
+                >
+                  Edit
+                </Link>
                 <form action={togglePublish}>
                   <input type="hidden" name="id" value={doc.id} />
                   <input
@@ -100,7 +109,7 @@ export default async function AdminDocumentsPage() {
                       "text-xs font-heading font-semibold px-3 py-1.5 rounded border transition-colors cursor-pointer",
                       doc.is_published
                         ? "border-slate/30 text-slate hover:bg-grey"
-                        : "border-navy text-navy hover:bg-navy hover:text-white",
+                        : "border-teal text-teal hover:bg-teal hover:text-white",
                     ].join(" ")}
                   >
                     {doc.is_published ? "Unpublish" : "Publish"}
@@ -109,6 +118,7 @@ export default async function AdminDocumentsPage() {
                 <form action={deleteDocument}>
                   <input type="hidden" name="id" value={doc.id} />
                   <input type="hidden" name="file_path" value={doc.file_path} />
+                  <input type="hidden" name="cover_image_path" value={doc.cover_image_path ?? ""} />
                   <button
                     type="submit"
                     className="text-xs font-heading font-semibold px-3 py-1.5 rounded border border-red-200 text-red-500 hover:bg-red-50 transition-colors cursor-pointer"

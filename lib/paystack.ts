@@ -52,6 +52,7 @@ export async function initializeTransaction({
     }),
   });
 
+  if (!res.ok) throw new Error(`Paystack init HTTP ${res.status}`);
   const data = await res.json();
   if (!data.status) throw new Error(data.message ?? "Paystack init failed");
 
@@ -69,6 +70,7 @@ export async function verifyTransaction(reference: string) {
     }
   );
 
+  if (!res.ok) throw new Error(`Paystack verify HTTP ${res.status}`);
   const data = await res.json();
   if (!data.status) throw new Error(data.message ?? "Paystack verify failed");
 
