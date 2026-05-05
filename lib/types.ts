@@ -43,6 +43,7 @@ export interface Event {
   description: string | null;
   date: string;
   location: string | null;
+  image_path: string | null;
   is_published: boolean;
   created_at: string;
 }

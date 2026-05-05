@@ -1,7 +1,12 @@
+import Image from "next/image";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Event } from "@/lib/types";
 
 export const revalidate = 60;
+
+function imageUrl(path: string) {
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/event-images/${path}`;
+}
 
 export default async function EventsPage() {
   const supabase = createAdminClient();
@@ -60,9 +65,23 @@ function EventCard({ event, past = false }: { event: Event; past?: boolean }) {
   const time = date.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="bg-white rounded-lg border border-border shadow-sm p-6 flex gap-5">
-      {/* Date block */}
-      <div className={["rounded-lg flex flex-col items-center justify-center w-16 h-16 shrink-0 text-white",
+    <div className="bg-white rounded-lg border border-border shadow-sm p-6 flex gap-4">
+      {/* Square image (when available) */}
+      {event.image_path && (
+        <div className="relative shrink-0 w-16 h-16 rounded-lg overflow-hidden">
+          <Image
+            src={imageUrl(event.image_path)}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="64px"
+            unoptimized
+          />
+        </div>
+      )}
+
+      {/* Date block — always shown */}
+      <div className={["rounded-lg flex flex-col items-center justify-center w-12 h-16 shrink-0 text-white",
         past ? "bg-slate" : "bg-navy"].join(" ")}>
         <span className="text-xl font-heading font-bold leading-none">{day}</span>
         <span className="text-xs font-caption opacity-80">{month}</span>
