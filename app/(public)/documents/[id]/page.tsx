@@ -80,12 +80,16 @@ export default async function DocumentDetailPage({
             <span
               className={[
                 "font-semibold font-heading px-2.5 py-0.5 rounded-full text-xs",
-                document.is_paid
+                document.is_member_only
+                  ? "bg-navy/10 text-navy"
+                  : document.is_paid
                   ? "bg-orange/10 text-orange"
                   : "bg-mint/10 text-teal",
               ].join(" ")}
             >
-              {document.is_paid && document.price != null
+              {document.is_member_only
+                ? "Members only"
+                : document.is_paid && document.price != null
                 ? `R${Number(document.price).toFixed(0)}`
                 : "Free"}
             </span>
@@ -96,10 +100,16 @@ export default async function DocumentDetailPage({
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl border border-border shadow-sm p-6 sticky top-6">
             <h2 className="heading-3 mb-1">
-              {document.is_paid ? "Access this report" : "Download free"}
+              {document.is_member_only
+                ? "Members only"
+                : document.is_paid
+                ? "Access this report"
+                : "Download free"}
             </h2>
             <p className="text-sm text-slate mb-5">
-              {document.is_paid
+              {document.is_member_only
+                ? "This document is available to BPESA member organisations. Enter your work email to verify access."
+                : document.is_paid
                 ? "This is a premium report. BPESA members get free access — enter your email to check."
                 : "Enter your details and we'll email you a secure download link."}
             </p>
@@ -107,6 +117,7 @@ export default async function DocumentDetailPage({
             <DownloadForm
               documentId={document.id}
               isPaid={document.is_paid}
+              isMemberOnly={document.is_member_only}
               price={document.price}
             />
           </div>

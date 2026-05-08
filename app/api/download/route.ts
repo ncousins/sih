@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     // Fetch document
     const { data: doc, error: docError } = await supabase
       .from("documents")
-      .select("id, title, file_path, is_paid, is_published")
+      .select("id, title, file_path, is_paid, is_member_only, is_published")
       .eq("id", documentId)
       .single();
 
@@ -28,8 +28,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Document not available" }, { status: 403 });
     }
 
-    if (doc.is_paid) {
-      // Check if email is a member (members get free access)
+    if (doc.is_member_only) {
+      // Domain-based check: any member with the same email domain grants access
+      const emailDomain = email.split("@")[1]?.toLowerCase().trim();
+      if (!emailDomain) {
+        return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+      }
+      // Escape SQL wildcard characters in the domain
+      const safeDomain = emailDomain.replace(/%/g, "\\%").replace(/_/g, "\\_");
+      const { data: memberDomain } = await supabase
+        .from("members")
+        .select("id")
+        .ilike("email", `%@${safeDomain}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (!memberDomain) {
+        return NextResponse.json({
+          error: "This document is available to member organisations only. Contact BPESA to enquire about membership.",
+        }, { status: 403 });
+      }
+    } else if (doc.is_paid) {
+      // Check if exact email is a member (members get free access to paid docs)
       const { data: member } = await supabase
         .from("members")
         .select("id")

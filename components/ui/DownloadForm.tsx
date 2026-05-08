@@ -8,12 +8,13 @@ import Input from "@/components/ui/Input";
 interface DownloadFormProps {
   documentId: string;
   isPaid: boolean;
+  isMemberOnly?: boolean;
   price?: number | null;
 }
 
 type State = "idle" | "loading" | "success" | "error" | "redirecting";
 
-export default function DownloadForm({ documentId, isPaid, price }: DownloadFormProps) {
+export default function DownloadForm({ documentId, isPaid, isMemberOnly = false, price }: DownloadFormProps) {
   const [state, setState] = useState<State>("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -110,7 +111,12 @@ export default function DownloadForm({ documentId, isPaid, price }: DownloadForm
         autoComplete="organization"
       />
 
-      {isPaid && price != null && (
+      {isMemberOnly && (
+        <div className="bg-navy/5 border border-navy/20 rounded p-3 text-sm text-slate">
+          Access is verified by your email domain against the BPESA member organisations list.
+        </div>
+      )}
+      {isPaid && !isMemberOnly && price != null && (
         <div className="bg-orange/5 border border-orange/20 rounded p-3 text-sm text-slate">
           <span className="font-semibold text-navy">R{Number(price).toFixed(0)}</span>
           {" "}· BPESA members get free access — enter your email to check.
@@ -152,7 +158,9 @@ export default function DownloadForm({ documentId, isPaid, price }: DownloadForm
         loading={state === "loading"}
         className="w-full"
       >
-        {isPaid
+        {isMemberOnly
+          ? "Verify member access"
+          : isPaid
           ? `Pay R${price != null ? Number(price).toFixed(0) : "—"} or check member access`
           : "Get free download"}
       </Button>

@@ -15,10 +15,11 @@ const CATEGORIES = [
 ];
 
 export default function DocumentUploadForm() {
+  type AccessType = "free" | "paid" | "member";
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [isPaid, setIsPaid] = useState(false);
+  const [accessType, setAccessType] = useState<AccessType>("free");
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -57,7 +58,7 @@ export default function DocumentUploadForm() {
 
       setSuccess(true);
       formRef.current?.reset();
-      setIsPaid(false);
+      setAccessType("free");
       setCoverPreview(null);
 
       // Refresh the page to show the new document
@@ -108,21 +109,31 @@ export default function DocumentUploadForm() {
         />
       </div>
 
-      {/* Pricing */}
-      <div className="flex items-center gap-3">
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            name="is_paid"
-            checked={isPaid}
-            onChange={(e) => setIsPaid(e.target.checked)}
-            className="w-4 h-4 accent-orange"
-          />
-          <span className="text-sm font-heading font-semibold text-navy">
-            Paid document
-          </span>
-        </label>
-        {isPaid && (
+      {/* Hidden access type fields */}
+      <input type="hidden" name="is_paid" value={accessType === "paid" ? "on" : ""} />
+      <input type="hidden" name="is_member_only" value={accessType === "member" ? "on" : ""} />
+
+      {/* Access type */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-heading font-semibold text-navy">Access type</span>
+        <div className="flex flex-wrap gap-3">
+          {(["free", "paid", "member"] as const).map((type) => (
+            <label key={type} className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="radio"
+                name="access_type_ui"
+                value={type}
+                checked={accessType === type}
+                onChange={() => setAccessType(type)}
+                className="accent-orange"
+              />
+              <span className="text-sm font-heading font-medium text-navy">
+                {type === "free" ? "Free" : type === "paid" ? "Paid" : "Members only"}
+              </span>
+            </label>
+          ))}
+        </div>
+        {accessType === "paid" && (
           <Input
             id="price"
             name="price"
@@ -132,6 +143,11 @@ export default function DocumentUploadForm() {
             placeholder="Price (ZAR)"
             className="w-36"
           />
+        )}
+        {accessType === "member" && (
+          <p className="text-xs text-slate/60">
+            Access is granted when the requester&apos;s email domain matches any member organisation on the members list.
+          </p>
         )}
       </div>
 

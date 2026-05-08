@@ -24,9 +24,12 @@ interface Props {
 
 export default function DocumentEditForm({ document: doc, pdfSignedUrl, coverPublicUrl }: Props) {
   const router = useRouter();
+  type AccessType = "free" | "paid" | "member";
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [isPaid, setIsPaid] = useState(doc.is_paid);
+  const [accessType, setAccessType] = useState<AccessType>(
+    doc.is_member_only ? "member" : doc.is_paid ? "paid" : "free"
+  );
   const [coverPreview, setCoverPreview] = useState<string | null>(coverPublicUrl);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -107,21 +110,31 @@ export default function DocumentEditForm({ document: doc, pdfSignedUrl, coverPub
         />
       </div>
 
-      {/* Pricing */}
-      <div className="flex items-center gap-3">
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            name="is_paid"
-            checked={isPaid}
-            onChange={(e) => setIsPaid(e.target.checked)}
-            className="w-4 h-4 accent-orange"
-          />
-          <span className="text-sm font-heading font-semibold text-navy">
-            Paid document
-          </span>
-        </label>
-        {isPaid && (
+      {/* Hidden access type fields */}
+      <input type="hidden" name="is_paid" value={accessType === "paid" ? "on" : ""} />
+      <input type="hidden" name="is_member_only" value={accessType === "member" ? "on" : ""} />
+
+      {/* Access type */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-heading font-semibold text-navy">Access type</span>
+        <div className="flex flex-wrap gap-3">
+          {(["free", "paid", "member"] as const).map((type) => (
+            <label key={type} className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="radio"
+                name="access_type_ui"
+                value={type}
+                checked={accessType === type}
+                onChange={() => setAccessType(type)}
+                className="accent-orange"
+              />
+              <span className="text-sm font-heading font-medium text-navy">
+                {type === "free" ? "Free" : type === "paid" ? "Paid" : "Members only"}
+              </span>
+            </label>
+          ))}
+        </div>
+        {accessType === "paid" && (
           <Input
             id="price"
             name="price"
@@ -132,6 +145,11 @@ export default function DocumentEditForm({ document: doc, pdfSignedUrl, coverPub
             placeholder="Price (ZAR)"
             className="w-36"
           />
+        )}
+        {accessType === "member" && (
+          <p className="text-xs text-slate/60">
+            Access is granted when the requester&apos;s email domain matches any member organisation on the members list.
+          </p>
         )}
       </div>
 

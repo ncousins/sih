@@ -18,6 +18,7 @@ export async function PATCH(
   const description = (formData.get("description") as string)?.trim() || null;
   const category = (formData.get("category") as string) || null;
   const isPaid = formData.get("is_paid") === "on";
+  const isMemberOnly = formData.get("is_member_only") === "on";
   const priceRaw = formData.get("price") as string;
   const price = isPaid && priceRaw ? parseFloat(priceRaw) : null;
   const newFile = formData.get("file") as File | null;
@@ -30,7 +31,7 @@ export async function PATCH(
   }
 
   const adminSupabase = createAdminClient();
-  const updates: Record<string, unknown> = { title, description, category, is_paid: isPaid, price };
+  const updates: Record<string, unknown> = { title, description, category, is_paid: isPaid, is_member_only: isMemberOnly, price };
 
   let newFileName: string | null = null;
 

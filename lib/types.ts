@@ -6,6 +6,7 @@ export interface Document {
   file_path: string;
   cover_image_path: string | null;
   is_paid: boolean;
+  is_member_only: boolean;
   price: number | null;
   is_published: boolean;
   created_at: string;

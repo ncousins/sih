@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
   const description = (formData.get("description") as string)?.trim() || null;
   const category = (formData.get("category") as string) || null;
   const isPaid = formData.get("is_paid") === "on";
+  const isMemberOnly = formData.get("is_member_only") === "on";
   const priceRaw = formData.get("price") as string;
   const price = isPaid && priceRaw ? parseFloat(priceRaw) : null;
   const file = formData.get("file") as File | null;
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
     file_path: fileName,
     cover_image_path: coverImagePath,
     is_paid: isPaid,
+    is_member_only: isMemberOnly,
     price,
     is_published: false,
   });

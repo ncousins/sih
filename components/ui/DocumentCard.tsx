@@ -27,16 +27,20 @@ export default function DocumentCard({ doc }: { doc: Document }) {
               </svg>
             </div>
           )}
-          {/* Price badge overlaid on cover */}
+          {/* Access badge overlaid on cover */}
           <span
             className={[
               "absolute top-2 right-2 text-xs font-heading font-semibold px-2.5 py-1 rounded-full",
-              doc.is_paid
+              doc.is_member_only
+                ? "bg-navy/90 text-white"
+                : doc.is_paid
                 ? "bg-orange/90 text-white"
                 : "bg-mint/90 text-teal",
             ].join(" ")}
           >
-            {doc.is_paid && doc.price != null
+            {doc.is_member_only
+              ? "Members"
+              : doc.is_paid && doc.price != null
               ? `R${Number(doc.price).toFixed(0)}`
               : "Free"}
           </span>

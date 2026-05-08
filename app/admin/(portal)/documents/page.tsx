@@ -67,12 +67,14 @@ export default async function AdminDocumentsPage() {
                   <span
                     className={[
                       "text-xs font-heading font-semibold px-2 py-0.5 rounded-full shrink-0",
-                      doc.is_paid
+                      doc.is_member_only
+                        ? "bg-navy/10 text-navy"
+                        : doc.is_paid
                         ? "bg-orange/10 text-orange"
                         : "bg-mint/10 text-teal",
                     ].join(" ")}
                   >
-                    {doc.is_paid ? `R${Number(doc.price ?? 0).toFixed(0)}` : "Free"}
+                    {doc.is_member_only ? "Members" : doc.is_paid ? `R${Number(doc.price ?? 0).toFixed(0)}` : "Free"}
                   </span>
                   <span
                     className={[
