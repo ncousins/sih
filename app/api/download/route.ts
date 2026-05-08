@@ -71,16 +71,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email
-    await sendDownloadEmail({
-      to: email.toLowerCase().trim(),
-      name: name.trim(),
-      documentTitle: doc.title,
-      downloadUrl: signedData.signedUrl,
-    });
+    try {
+      await sendDownloadEmail({
+        to: email.toLowerCase().trim(),
+        name: name.trim(),
+        documentTitle: doc.title,
+        downloadUrl: signedData.signedUrl,
+      });
+    } catch (emailErr: unknown) {
+      const msg = emailErr instanceof Error ? emailErr.message : String(emailErr);
+      console.error("Download email error:", msg);
+      return NextResponse.json({ error: `Email delivery failed: ${msg}` }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Download route error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("Download route error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
