@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { Document } from "@/lib/types";
 import DocumentUploadForm from "@/components/ui/DocumentUploadForm";
+import DeleteDocumentButton from "@/components/ui/DeleteDocumentButton";
 
 export const dynamic = "force-dynamic";
 
@@ -115,17 +116,12 @@ export default async function AdminDocumentsPage() {
                     {doc.is_published ? "Unpublish" : "Publish"}
                   </button>
                 </form>
-                <form action={deleteDocument}>
-                  <input type="hidden" name="id" value={doc.id} />
-                  <input type="hidden" name="file_path" value={doc.file_path} />
-                  <input type="hidden" name="cover_image_path" value={doc.cover_image_path ?? ""} />
-                  <button
-                    type="submit"
-                    className="text-xs font-heading font-semibold px-3 py-1.5 rounded border border-red-200 text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </form>
+                <DeleteDocumentButton
+                  action={deleteDocument}
+                  id={doc.id}
+                  filePath={doc.file_path}
+                  coverImagePath={doc.cover_image_path ?? ""}
+                />
               </div>
             </div>
           ))}
