@@ -83,8 +83,24 @@ export default function DownloadForm({ documentId, isPaid, isMemberOnly = false,
     );
   }
 
+  const heading = isMemberOnly
+    ? "Members only"
+    : isPaid
+    ? "Access this report"
+    : "Download free";
+
+  const description = isMemberOnly
+    ? "This document is available to BPESA member organisations. Enter your work email to verify access."
+    : isPaid
+    ? "This is a premium report. BPESA members get free access — enter your email to check."
+    : "Enter your details and we'll email you a secure download link.";
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="mb-1">
+        <h2 className="heading-3 mb-1">{heading}</h2>
+        <p className="text-sm text-slate">{description}</p>
+      </div>
       <Input
         id="name"
         name="name"
