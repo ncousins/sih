@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { verifyWebhookSignature, verifyTransaction } from "@/lib/paystack";
 import { sendDownloadEmail } from "@/lib/resend";
+import { getSetting } from "@/lib/settings";
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("x-paystack-signature") ?? "";
@@ -89,11 +90,16 @@ export async function POST(request: NextRequest) {
       .createSignedUrl(doc.file_path, 60 * 60 * 24);
 
     if (signed?.signedUrl) {
+      const [fromName, fromAddress] = await Promise.all([
+        getSetting("email_from_name", "BPESA SIH"),
+        getSetting("email_from_address", "noreply@bpesa.org.za"),
+      ]);
       await sendDownloadEmail({
         to: email,
         name,
         documentTitle: doc.title,
         downloadUrl: signed.signedUrl,
+        from: `${fromName} <${fromAddress}>`,
       });
     }
   } catch (err) {

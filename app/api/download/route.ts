@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendDownloadEmail } from "@/lib/resend";
+import { getSetting } from "@/lib/settings";
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,11 +73,16 @@ export async function POST(request: NextRequest) {
 
     // Send email
     try {
+      const [fromName, fromAddress] = await Promise.all([
+        getSetting("email_from_name", "BPESA SIH"),
+        getSetting("email_from_address", "noreply@bpesa.org.za"),
+      ]);
       await sendDownloadEmail({
         to: email.toLowerCase().trim(),
         name: name.trim(),
         documentTitle: doc.title,
         downloadUrl: signedData.signedUrl,
+        from: `${fromName} <${fromAddress}>`,
       });
     } catch (emailErr: unknown) {
       const msg = emailErr instanceof Error ? emailErr.message : String(emailErr);

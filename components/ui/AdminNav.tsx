@@ -8,6 +8,7 @@ const navItems = [
   { href: "/admin/documents", label: "Documents", icon: "📄" },
   { href: "/admin/events", label: "Events", icon: "📅" },
   { href: "/admin/members", label: "Members", icon: "👥" },
+  { href: "/admin/settings", label: "Settings", icon: "⚙" },
 ];
 
 export default function AdminNav() {

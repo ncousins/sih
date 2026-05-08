@@ -7,14 +7,17 @@ export async function sendDownloadEmail({
   name,
   documentTitle,
   downloadUrl,
+  from,
 }: {
   to: string;
   name: string;
   documentTitle: string;
   downloadUrl: string;
+  from?: string;
 }) {
+  const sender = from ?? "BPESA SIH <noreply@bpesa.org.za>";
   const { error } = await resend.emails.send({
-    from: "BPESA SIH <noreply@bpesa.org.za>",
+    from: sender,
     to,
     subject: `Your download: ${documentTitle}`,
     html: `
